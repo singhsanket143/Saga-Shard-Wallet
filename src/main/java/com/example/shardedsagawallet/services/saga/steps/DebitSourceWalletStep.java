@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service;
 import com.example.shardedsagawallet.entities.Wallet;
 import com.example.shardedsagawallet.repositories.WalletRepository;
 import com.example.shardedsagawallet.services.saga.SagaContext;
-import com.example.shardedsagawallet.services.saga.SagaStep;
+import com.example.shardedsagawallet.services.saga.SagaStepInterface;
+import com.example.shardedsagawallet.services.saga.steps.SagaStepFactory.SagaStepType;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DebitSourceWalletStep implements SagaStep {
+public class DebitSourceWalletStep implements SagaStepInterface {
 
     private final WalletRepository walletRepository;
     
@@ -75,6 +76,6 @@ public class DebitSourceWalletStep implements SagaStep {
 
     @Override
     public String getStepName() {
-        return "DebitSourceWalletStep";
+        return SagaStepType.DEBIT_SOURCE_WALLET_STEP.toString();
     }
 }
