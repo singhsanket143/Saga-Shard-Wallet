@@ -29,6 +29,8 @@ public class TransactionService {
             .toWalletId(toWalletId)
             .amount(amount)
             .description(description)
+            .status(com.example.shardedsagawallet.entities.TransactionStatus.PENDING)
+            .type(com.example.shardedsagawallet.entities.TransactionType.TRANSFER)
             .build();
         Transaction savedTransaction = transactionRepository.save(transaction);
         log.info("Transaction created with id {}", savedTransaction.getId());

@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class TransferSagaService {
     
     private final TransactionService transactionService;
-    private SagaOrchestrator sagaOrchestrator;
+    private final SagaOrchestrator sagaOrchestrator;
 
 
     @Transactional
@@ -45,6 +45,8 @@ public class TransferSagaService {
                 Map.entry("description", description)
             ))
             .build();
+
+        log.info("Saga context created with id {}", sagaContext.get("description"));
 
         Long sagaInstanceId = sagaOrchestrator.startSaga(sagaContext);
         log.info("Saga instance created with id {}", sagaInstanceId);
