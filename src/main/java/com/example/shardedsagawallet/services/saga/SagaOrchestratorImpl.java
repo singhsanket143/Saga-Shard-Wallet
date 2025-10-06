@@ -177,6 +177,7 @@ public class SagaOrchestratorImpl implements SagaOrchestrator {
                 allCompensated = false;
             }
         }
+        // Todo: make the compensations go in parallel
 
         if(allCompensated) {
             sagaInstance.markAsCompensated();
