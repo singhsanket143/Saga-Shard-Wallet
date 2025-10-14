@@ -10,7 +10,7 @@ description = 'Demo project for Sharded Saga Wallet'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 

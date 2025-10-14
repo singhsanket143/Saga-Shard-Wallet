@@ -1,6 +1,8 @@
 package com.example.shardedsagawallet.services.saga;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ public class SagaOrchestratorImpl implements SagaOrchestrator {
     private final SagaInstanceRepository sagaInstanceRepository;
     private final SagaStepRepository sagaStepRepository;
     private final SagaStepFactory sagaStepFactory;
+    private final AsyncSagaExecuter asyncSagaExecuter;
 
     @Override
     @Transactional
@@ -38,7 +41,7 @@ public class SagaOrchestratorImpl implements SagaOrchestrator {
             .status(SagaStatus.STARTED)
             .build();
 
-            sagaInstance = sagaInstanceRepository.save(sagaInstance);
+            sagaInstance = sagaInstanceRepository.saveAndFlush(sagaInstance);
 
             log.info("Started saga with id {}", sagaInstance.getId());
 
@@ -171,13 +174,35 @@ public class SagaOrchestratorImpl implements SagaOrchestrator {
         List<SagaStep> completedSteps = sagaStepRepository.findCompletedStepsBySagaInstanceId(sagaInstanceId);
 
         boolean allCompensated = true;
-        for(SagaStep completedStep : completedSteps) {
+
+      /*  for(SagaStep completedStep : completedSteps) {
+            //async processing
             boolean compensated = this.compensateStep(sagaInstanceId, completedStep.getStepName());
+
             if(!compensated) {
                 allCompensated = false;
             }
-        }
+        } */
         // Todo: make the compensations go in parallel
+
+        // call each compensateStep() async way
+        List<CompletableFuture<Boolean>> compensatedFutures = completedSteps.stream()
+                .map(compensated -> asyncSagaExecuter.compensateStep(sagaInstanceId, compensated.getStepName()))
+                .toList();
+
+        // waiting for all the async compensateStep() to finish
+        CompletableFuture.allOf(compensatedFutures.toArray(new CompletableFuture[0])).join(); // join blocks the main thread
+
+        // true : if all compensateStep runs successfully, false : if any fails
+        allCompensated = compensatedFutures.stream()
+                .allMatch(futures -> {
+                    try {
+                        return futures.join(); // get the result of each compensateStep() [Blocking]
+                    } catch (CompletionException e) {
+                        log.error("Compensation failed", e.getCause());
+                        return false;
+                    }
+                });
 
         if(allCompensated) {
             sagaInstance.markAsCompensated();
@@ -186,8 +211,6 @@ public class SagaOrchestratorImpl implements SagaOrchestrator {
         } else {
             log.error("Saga {} compensation failed", sagaInstanceId);
         }
-
-
     }
 
     @Override
