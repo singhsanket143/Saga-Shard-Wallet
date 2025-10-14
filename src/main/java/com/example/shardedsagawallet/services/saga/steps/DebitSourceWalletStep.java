@@ -2,6 +2,7 @@ package com.example.shardedsagawallet.services.saga.steps;
 
 import java.math.BigDecimal;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.example.shardedsagawallet.entities.Wallet;
@@ -23,6 +24,7 @@ public class DebitSourceWalletStep implements SagaStepInterface {
     
     @Override
     @Transactional
+    @Async
     public boolean execute(SagaContext context) {
         Long fromWalletId = context.getLong("fromWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
@@ -50,6 +52,7 @@ public class DebitSourceWalletStep implements SagaStepInterface {
 
     @Override
     @Transactional
+    @Async
     public boolean compensate(SagaContext context) {
         Long fromWalletId = context.getLong("fromWalletId");
         BigDecimal amount = context.getBigDecimal("amount");
