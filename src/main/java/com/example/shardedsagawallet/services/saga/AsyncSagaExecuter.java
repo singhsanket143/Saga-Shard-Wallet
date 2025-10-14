@@ -14,7 +14,7 @@ public class AsyncSagaExecuter {
 
     private final SagaOrchestrator sagaOrchestrator;
 
-    @Async
+    @Async("compensationExecutor")
     public CompletableFuture<Boolean> compensateStep(Long sagaInstanceId, String stepName) {
         log.info("Entering into async compensateStep");
         boolean result = sagaOrchestrator.compensateStep(sagaInstanceId, stepName);
